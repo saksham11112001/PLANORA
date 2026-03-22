@@ -1,22 +1,34 @@
 export default function Loading() {
   return (
-    <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
-      <div style={{padding:'18px 24px 0',background:'#fff',borderBottom:'1px solid #e2e8f0'}}>
-        <div style={{height:28,width:120,borderRadius:8,background:'#e2e8f0',marginBottom:16,animation:'pulse 1.5s ease-in-out infinite'}}/>
-        <div style={{display:'flex',gap:4,paddingBottom:1}}>{[80,60,70].map((w,i)=><div key={i} style={{height:34,width:w,borderRadius:6,background:'#f1f5f9',animation:'pulse 1.5s ease-in-out infinite'}}/>)}</div>
+    <div style={{
+      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--surface-subtle)', flexDirection: 'column', gap: 14,
+    }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 10,
+        background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <svg width="20" height="20" viewBox="0 0 32 32" fill="none">
+          <path d="M8 24V12L16 8L24 12V24" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M12 24V17L16 15L20 17V24" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </div>
-      <div style={{flex:1,background:'#fff',padding:'0'}}>
-        {[...Array(8)].map((_,i)=>(
-          <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'0 16px',height:38,borderBottom:'1px solid #f8fafc'}}>
-            <div style={{width:13,height:13,borderRadius:3,background:'#f1f5f9',animation:'pulse 1.5s ease-in-out infinite'}}/>
-            <div style={{width:15,height:15,borderRadius:'50%',border:'1.5px solid #e2e8f0'}}/>
-            <div style={{flex:1,height:13,borderRadius:6,background:'#f1f5f9',animation:'pulse 1.5s ease-in-out infinite'}}/>
-            <div style={{width:100,height:20,borderRadius:10,background:'#f1f5f9',animation:'pulse 1.5s ease-in-out infinite'}}/>
-            <div style={{width:60,height:13,borderRadius:6,background:'#f1f5f9',animation:'pulse 1.5s ease-in-out infinite'}}/>
-          </div>
+      <div style={{ display: 'flex', gap: 5 }}>
+        {[0,1,2].map(i => (
+          <div key={i} style={{
+            width: 7, height: 7, borderRadius: '50%', background: '#0d9488',
+            animation: 'dotPulse 1.2s ease-in-out infinite',
+            animationDelay: `${i * 0.18}s`,
+          }}/>
         ))}
       </div>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
+      <style>{`
+        @keyframes dotPulse {
+          0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+          40% { transform: scale(1.2); opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 }
