@@ -1,6 +1,7 @@
 import { createClient }  from '@/lib/supabase/server'
 import { redirect }      from 'next/navigation'
-import { TeamView }      from './TeamView'export const revalidate = 20
+import { TeamView }      from './TeamView'
+export const revalidate = 20
 
 export default async function TeamPage() {
   const supabase = await createClient()

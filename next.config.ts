@@ -9,7 +9,7 @@ const config: NextConfig = {
     // Optimize package imports — reduces bundle size for large icon/UI libs
     optimizePackageImports: ['lucide-react', 'recharts', '@supabase/supabase-js'],
     // Faster server components
-    serverComponentsExternalPackages: [],
+
   },
 
   // Images
