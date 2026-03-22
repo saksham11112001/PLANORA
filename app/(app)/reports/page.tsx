@@ -114,9 +114,12 @@ export default async function ReportsPage() {
   return (
     <div style={{ flex: 1, overflowY: 'auto', padding: 24, background:'var(--surface-subtle)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ marginBottom: 22 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color:'var(--text-primary)', marginBottom: 4 }}>Reports</h1>
-          <p style={{ fontSize: 13, color:'var(--text-muted)' }}>Last 30 days · {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+        <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom: 22, gap: 12, flexWrap:'wrap' }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, color:'var(--text-primary)', marginBottom: 4 }}>Reports</h1>
+            <p style={{ fontSize: 13, color:'var(--text-muted)' }}>Last 30 days · {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+          </div>
+          <ReportsExport/>
         </div>
 
         {/* KPI row */}
