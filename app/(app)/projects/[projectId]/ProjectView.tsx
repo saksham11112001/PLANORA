@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect, useRef } from 'react'
 import { useRouter }    from 'next/navigation'
 import { Filter, SortAsc, Plus, CheckCheck, Clock, DollarSign } from 'lucide-react'
 import { InlineTaskRow }   from '@/components/tasks/InlineTaskRow'
@@ -37,17 +37,72 @@ export function ProjectView({ project, tasks, members, clients, defaultClientId,
   const [collapsed,    setCollapsed]    = useState<Record<string, boolean>>({})
   const [isPending,    startT]          = useTransition()
   const today = todayStr()
+  const toolbarRef = useRef<HTMLDivElement>(null)
+
+  // Close filter/sort dropdowns on outside click
+  useEffect(() => {
+    function close(e: MouseEvent) {
+      if (toolbarRef.current && !toolbarRef.current.contains(e.target as Node)) {
+        setFilterOpen(false)
+        setSortOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [])
+
+  // Filter + Sort state
+  const [filterOpen,   setFilterOpen]   = useState(false)
+  const [sortOpen,     setSortOpen]     = useState(false)
+  const [filterAssignee, setFilterAssignee] = useState('')
+  const [filterPriority, setFilterPriority] = useState('')
+  const [filterStatus,   setFilterStatus]   = useState('')
+  const [sortBy,       setSortBy]       = useState<'due_date'|'priority'|'title'|'created'>('due_date')
+  const [sortDir,      setSortDir]      = useState<'asc'|'desc'>('asc')
+
+  // Add Section state
+  const [addSectionOpen, setAddSectionOpen] = useState(false)
+  const [newSectionName, setNewSectionName] = useState('')
+  const [customSections, setCustomSections] = useState<{key:string;label:string;color:string}[]>([])
 
   const total    = tasks.length
   const done     = tasks.filter(t => t.status === 'completed').length
   const progress = total > 0 ? Math.round((done / total) * 100) : 0
 
+  // Apply filters
+  const filteredTasks = tasks.filter(t => {
+    if (filterAssignee && t.assignee_id !== filterAssignee) return false
+    if (filterPriority && t.priority !== filterPriority) return false
+    if (filterStatus   && t.status   !== filterStatus)   return false
+    return true
+  })
+
+  // Apply sort
+  const PRIORITY_ORDER: Record<string,number> = { urgent:0, high:1, medium:2, low:3, none:4 }
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    let cmp = 0
+    if (sortBy === 'due_date') {
+      if (!a.due_date && !b.due_date) cmp = 0
+      else if (!a.due_date) cmp = 1
+      else if (!b.due_date) cmp = -1
+      else cmp = a.due_date.localeCompare(b.due_date)
+    } else if (sortBy === 'priority') {
+      cmp = (PRIORITY_ORDER[a.priority] ?? 4) - (PRIORITY_ORDER[b.priority] ?? 4)
+    } else if (sortBy === 'title') {
+      cmp = a.title.localeCompare(b.title)
+    }
+    return sortDir === 'asc' ? cmp : -cmp
+  })
+
+  const activeFilters = [filterAssignee, filterPriority, filterStatus].filter(Boolean).length
+
   const SECTIONS = [
-    { key: 'overdue',    label: 'Overdue',    color: '#dc2626', creator: false, tasks: tasks.filter(t => t.status !== 'completed' && isOverdue(t.due_date, t.status)) },
-    { key: 'todo',       label: 'To do',      color:'var(--text-secondary)', creator: true,  tasks: tasks.filter(t => t.status === 'todo' && !isOverdue(t.due_date, t.status)) },
-    { key: 'inprogress', label: 'In progress',color: '#0d9488', creator: false, tasks: tasks.filter(t => t.status === 'in_progress') },
-    { key: 'inreview',   label: 'In review',  color: '#7c3aed', creator: false, tasks: tasks.filter(t => t.status === 'in_review') },
-    { key: 'done',       label: 'Done',       color: '#16a34a', creator: false, tasks: tasks.filter(t => t.status === 'completed') },
+    { key: 'overdue',    label: 'Overdue',    color: '#dc2626', creator: false, tasks: sortedTasks.filter(t => t.status !== 'completed' && isOverdue(t.due_date, t.status)) },
+    { key: 'todo',       label: 'To do',      color:'var(--text-secondary)', creator: true,  tasks: sortedTasks.filter(t => t.status === 'todo' && !isOverdue(t.due_date, t.status)) },
+    { key: 'inprogress', label: 'In progress',color: '#0d9488', creator: false, tasks: sortedTasks.filter(t => t.status === 'in_progress') },
+    { key: 'inreview',   label: 'In review',  color: '#7c3aed', creator: false, tasks: sortedTasks.filter(t => t.status === 'in_review') },
+    { key: 'done',       label: 'Done',       color: '#16a34a', creator: false, tasks: sortedTasks.filter(t => t.status === 'completed') },
+    ...customSections.map(s => ({ ...s, creator: true, tasks: [] as Task[] })),
   ]
 
   async function toggleDone(taskId: string, status: string, e: React.MouseEvent) {
@@ -74,7 +129,7 @@ export function ProjectView({ project, tasks, members, clients, defaultClientId,
   function TaskRow({ task }: { task: Task }) {
     const ov       = isOverdue(task.due_date, task.status)
     const isComp   = task.status === 'completed'
-    const assignee = task.assignee as { id: string; name: string } | null
+    const assignee = task.assignee as unknown as { id: string; name: string } | null
     const statConf = STATUS_CONFIG[task.status]
     return (
       <div className={cn('task-row group', selectedTask?.id === task.id && 'selected', checked.has(task.id) && 'bg-teal-50/60')}>
@@ -131,14 +186,105 @@ export function ProjectView({ project, tasks, members, clients, defaultClientId,
       {/* LIST view */}
       {tab === 'list' && (
         <div className="flex flex-col flex-1 min-h-0" style={{ background: 'var(--surface)' }}>
-          <div className="toolbar">
+          <div className="toolbar" ref={toolbarRef}>
             {checked.size > 0 ? (
               <><span className="text-sm font-medium text-gray-700 mr-2">{checked.size} selected</span>
                 <button onClick={bulkComplete} className="btn btn-brand btn-sm flex items-center gap-1.5"><CheckCheck className="h-3.5 w-3.5"/> Complete</button>
                 <button onClick={() => setChecked(new Set())} className="btn btn-ghost btn-sm">Cancel</button></>
             ) : (
-              <><button className="toolbar-btn"><Filter className="h-3.5 w-3.5"/> Filter</button>
-                <button className="toolbar-btn"><SortAsc className="h-3.5 w-3.5"/> Sort</button></>
+              <>
+                {/* Filter button */}
+                <div style={{position:'relative'}}>
+                  <button onClick={() => { setFilterOpen(o=>!o); setSortOpen(false) }}
+                    className="toolbar-btn"
+                    style={{ color: activeFilters > 0 ? 'var(--brand)' : undefined,
+                             background: activeFilters > 0 ? 'var(--brand-light)' : undefined }}>
+                    <Filter className="h-3.5 w-3.5"/>
+                    Filter{activeFilters > 0 ? ` (${activeFilters})` : ''}
+                  </button>
+                  {filterOpen && (
+                    <div style={{ position:'absolute', top:'100%', left:0, marginTop:4,
+                      background:'var(--surface)', border:'1px solid var(--border)',
+                      borderRadius:10, boxShadow:'0 8px 24px rgba(0,0,0,0.12)', zIndex:9999,
+                      padding:12, minWidth:220 }} onClick={e=>e.stopPropagation()}>
+                      <p style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',
+                        textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8}}>Filter by</p>
+                      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                        <div>
+                          <label style={{fontSize:11,color:'var(--text-muted)',display:'block',marginBottom:3}}>Assignee</label>
+                          <select value={filterAssignee} onChange={e=>setFilterAssignee(e.target.value)}
+                            style={{width:'100%',padding:'5px 8px',borderRadius:6,border:'1px solid var(--border)',
+                              background:'var(--surface)',color:'var(--text-primary)',fontSize:12}}>
+                            <option value="">All members</option>
+                            {members.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{fontSize:11,color:'var(--text-muted)',display:'block',marginBottom:3}}>Priority</label>
+                          <select value={filterPriority} onChange={e=>setFilterPriority(e.target.value)}
+                            style={{width:'100%',padding:'5px 8px',borderRadius:6,border:'1px solid var(--border)',
+                              background:'var(--surface)',color:'var(--text-primary)',fontSize:12}}>
+                            <option value="">All priorities</option>
+                            {['urgent','high','medium','low','none'].map(p=><option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{fontSize:11,color:'var(--text-muted)',display:'block',marginBottom:3}}>Status</label>
+                          <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}
+                            style={{width:'100%',padding:'5px 8px',borderRadius:6,border:'1px solid var(--border)',
+                              background:'var(--surface)',color:'var(--text-primary)',fontSize:12}}>
+                            <option value="">All statuses</option>
+                            {['todo','in_progress','in_review','completed'].map(s=><option key={s} value={s}>{s.replace('_',' ')}</option>)}
+                          </select>
+                        </div>
+                        {activeFilters > 0 && (
+                          <button onClick={()=>{ setFilterAssignee(''); setFilterPriority(''); setFilterStatus(''); setFilterOpen(false) }}
+                            style={{padding:'5px 0',borderRadius:6,border:'none',background:'var(--border-light)',
+                              color:'var(--text-secondary)',fontSize:11,fontWeight:600,cursor:'pointer'}}>
+                            Clear all filters
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sort button */}
+                <div style={{position:'relative'}}>
+                  <button onClick={() => { setSortOpen(o=>!o); setFilterOpen(false) }} className="toolbar-btn"
+                    style={{ color: sortBy !== 'due_date' ? 'var(--brand)' : undefined,
+                             background: sortBy !== 'due_date' ? 'var(--brand-light)' : undefined }}>
+                    <SortAsc className="h-3.5 w-3.5"/>
+                    Sort{sortBy !== 'due_date' ? ': '+sortBy.replace('_',' ') : ''}
+                  </button>
+                  {sortOpen && (
+                    <div style={{ position:'absolute', top:'100%', left:0, marginTop:4,
+                      background:'var(--surface)', border:'1px solid var(--border)',
+                      borderRadius:10, boxShadow:'0 8px 24px rgba(0,0,0,0.12)', zIndex:9999,
+                      padding:12, minWidth:200 }} onClick={e=>e.stopPropagation()}>
+                      <p style={{fontSize:11,fontWeight:700,color:'var(--text-muted)',
+                        textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8}}>Sort by</p>
+                      <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                        {([['due_date','Due date'],['priority','Priority'],['title','Title']] as const).map(([val,label])=>(
+                          <button key={val} onClick={()=>{
+                            if(sortBy===val) setSortDir(d=>d==='asc'?'desc':'asc')
+                            else { setSortBy(val); setSortDir('asc') }
+                          }} style={{
+                            display:'flex', alignItems:'center', justifyContent:'space-between',
+                            padding:'7px 10px', borderRadius:6, border:'none', cursor:'pointer',
+                            background: sortBy===val ? 'var(--brand-light)' : 'transparent',
+                            color: sortBy===val ? 'var(--brand)' : 'var(--text-primary)',
+                            fontSize:13, fontWeight: sortBy===val ? 600 : 400, textAlign:'left',
+                          }}>
+                            {label}
+                            {sortBy===val && <span style={{fontSize:10}}>{sortDir==='asc'?'↑':'↓'}</span>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
           <div className="flex items-center gap-2 px-4 py-1.5 border-b text-xs font-semibold text-gray-400 uppercase tracking-wide sticky top-0 z-10"
@@ -171,9 +317,55 @@ export function ProjectView({ project, tasks, members, clients, defaultClientId,
                 </div>
               )
             })}
-            <button className="flex items-center gap-2 px-4 py-3 text-sm text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors w-full">
-              <Plus className="h-4 w-4"/> Add section
-            </button>
+            {/* Add section */}
+            {addSectionOpen ? (
+              <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',
+                borderTop:'1px solid var(--border)',background:'var(--brand-light)'}}>
+                <Plus style={{width:14,height:14,color:'var(--brand)',flexShrink:0}}/>
+                <input
+                  value={newSectionName}
+                  onChange={e=>setNewSectionName(e.target.value)}
+                  onKeyDown={e=>{
+                    if(e.key==='Enter' && newSectionName.trim()){
+                      const key = 'custom_'+Date.now()
+                      setCustomSections(p=>[...p,{key,label:newSectionName.trim(),color:'var(--text-secondary)'}])
+                      setNewSectionName('')
+                      setAddSectionOpen(false)
+                    }
+                    if(e.key==='Escape'){setAddSectionOpen(false);setNewSectionName('')}
+                  }}
+                  placeholder="Section name… (Enter to add)"
+                  autoFocus
+                  style={{flex:1,padding:'5px 8px',borderRadius:6,border:'1px solid var(--brand)',
+                    outline:'none',fontSize:13,background:'var(--surface)',color:'var(--text-primary)'}}
+                />
+                <button onClick={()=>{
+                  if(newSectionName.trim()){
+                    const key='custom_'+Date.now()
+                    setCustomSections(p=>[...p,{key,label:newSectionName.trim(),color:'var(--text-secondary)'}])
+                    setNewSectionName('')
+                  }
+                  setAddSectionOpen(false)
+                }} style={{padding:'5px 12px',borderRadius:6,border:'none',background:'var(--brand)',
+                  color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                  Add
+                </button>
+                <button onClick={()=>{setAddSectionOpen(false);setNewSectionName('')}}
+                  style={{padding:'5px 8px',borderRadius:6,border:'none',background:'transparent',
+                    color:'var(--text-muted)',fontSize:12,cursor:'pointer'}}>
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button onClick={()=>setAddSectionOpen(true)}
+                style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',
+                  fontSize:13,color:'var(--text-muted)',background:'transparent',border:'none',
+                  cursor:'pointer',width:'100%',textAlign:'left',transition:'color 0.1s'}}
+                onMouseEnter={e=>(e.currentTarget.style.color='var(--brand)')}
+                onMouseLeave={e=>(e.currentTarget.style.color='var(--text-muted)')}>
+                <Plus style={{width:14,height:14}}/> Add section
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -193,7 +385,7 @@ export function ProjectView({ project, tasks, members, clients, defaultClientId,
                   </div>
                   <div className="flex-1 overflow-y-auto p-2 space-y-2">
                     {colTasks.map(task => {
-                      const assignee = task.assignee as { id: string; name: string } | null
+                      const assignee = task.assignee as unknown as { id: string; name: string } | null
                       const pri      = PRIORITY_CONFIG[task.priority]
                       return (
                         <div key={task.id} onClick={() => setSelectedTask(task)}
