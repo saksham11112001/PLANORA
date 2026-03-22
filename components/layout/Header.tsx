@@ -115,8 +115,27 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void } = {}) {
   ]
 
   return (
-    <header className="h-[54px] bg-white border-b flex items-center px-4 gap-3 flex-shrink-0 z-30"
-      style={{ borderColor: 'var(--border)' }}>
+    <header style={{
+      height: 54, background: 'var(--surface)',
+      borderBottom: '1px solid var(--border)',
+      display: 'flex', alignItems: 'center',
+      padding: '0 16px', gap: 10, flexShrink: 0, zIndex: 30,
+    }}>
+
+      {/* Hamburger — mobile only */}
+      <button
+        onClick={onMenuClick}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 36, height: 36, borderRadius: 8, border: 'none',
+          background: 'transparent', cursor: 'pointer', flexShrink: 0,
+          color: 'var(--text-secondary)',
+        }}
+        className="mobile-menu-btn"
+        aria-label="Open menu"
+      >
+        <Menu style={{ width: 20, height: 20 }}/>
+      </button>
 
       {/* Search */}
       <button onClick={() => setSearchOpen(true)}

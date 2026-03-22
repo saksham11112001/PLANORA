@@ -24,6 +24,16 @@ export function AppShell({ user, org, role, workspaceId, children }: Props) {
 
   useEffect(() => { setMobileOpen(false) }, [pathname])
 
+  // Lock body scroll on iOS when sidebar is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.classList.add('sidebar-open')
+    } else {
+      document.body.classList.remove('sidebar-open')
+    }
+    return () => document.body.classList.remove('sidebar-open')
+  }, [mobileOpen])
+
   useEffect(() => {
     setSession({ user, org, role, workspaceId })
   // eslint-disable-next-line react-hooks/exhaustive-deps
