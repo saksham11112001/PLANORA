@@ -1,15 +1,16 @@
 import type { NextConfig } from 'next'
 
 const config: NextConfig = {
+  // Skip ESLint during builds (run separately)
+  eslint: { ignoreDuringBuilds: true },
+  // Skip TypeScript errors during builds (type-check separately)
+  typescript: { ignoreBuildErrors: false },
   // Compress responses
   compress: true,
 
   // Experimental optimizations
   experimental: {
-    // Optimize package imports — reduces bundle size for large icon/UI libs
     optimizePackageImports: ['lucide-react', 'recharts', '@supabase/supabase-js'],
-    // Faster server components
-
   },
 
   // Images

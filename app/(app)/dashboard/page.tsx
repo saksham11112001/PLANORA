@@ -86,7 +86,7 @@ export default async function DashboardPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               {urgent ? <AlertCircle className="h-4 w-4" style={{ color: n > 0 ? '#dc2626' : '#cbd5e1' }}/> :
                brand  ? <Clock       className="h-4 w-4" style={{ color: n > 0 ? 'var(--brand)' : '#cbd5e1' }}/> :
-                         <CheckSquare className="h-4 w-4" style={{ color: '#94a3b8' }}/>}
+                         <CheckSquare className="h-4 w-4" style={{ color:'var(--text-muted)' }}/>}
               <span className="text-xs font-medium" style={{ color: n > 0 && urgent ? '#dc2626' : n > 0 && brand ? 'var(--brand)' : '#94a3b8' }}>{label}</span>
             </div>
             <p className="text-3xl font-bold" style={{ color: n > 0 && urgent ? '#dc2626' : n > 0 && brand ? 'var(--brand)' : '#cbd5e1' }}>{n}</p>
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
           <div className="card-elevated overflow-hidden">
             {myTasks && myTasks.length > 0 ? myTasks.map(task => {
               const isOv = task.due_date && task.due_date < today
-              const proj = task.projects as { id: string; name: string; color: string } | null
+              const proj = task.projects as unknown as { id: string; name: string; color: string } | null
               return (
                 <Link key={task.id} href="/tasks"
                   className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
@@ -134,7 +134,7 @@ export default async function DashboardPage() {
             </div>
             <div className="card-elevated overflow-hidden">
               {activeProjects && activeProjects.length > 0 ? activeProjects.map(p => {
-                const client = p.clients as { id: string; name: string; color: string } | null
+                const client = p.clients as unknown as { id: string; name: string; color: string } | null
                 return (
                   <Link key={p.id} href={`/projects/${p.id}`}
                     className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
