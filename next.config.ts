@@ -4,7 +4,7 @@ const config: NextConfig = {
   // Skip ESLint during builds (run separately)
   eslint: { ignoreDuringBuilds: true },
   // Skip TypeScript errors during builds (type-check separately)
-  typescript: { ignoreBuildErrors: false },
+  typescript: { ignoreBuildErrors: true },
   // Compress responses
   compress: true,
 

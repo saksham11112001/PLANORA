@@ -14,7 +14,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!membership) redirect('/onboarding')
 
-  const org = membership.organisations as {
+  const org = membership.organisations as unknown as {
     id: string; name: string; slug: string; plan_tier: string; logo_color: string
   } | null
   if (!org) redirect('/onboarding')

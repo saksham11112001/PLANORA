@@ -64,7 +64,7 @@ export default async function SettingsPage() {
   if (!mb) redirect('/onboarding')
 
   const isAdmin = ['owner', 'admin'].includes(mb.role)
-  const org     = mb.organisations as { name: string; plan_tier: string } | null
+  const org     = mb.organisations as unknown as { name: string; plan_tier: string } | null
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
