@@ -1,11 +1,12 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { X, ThumbsUp, ThumbsDown, Flag, Calendar, User, Briefcase, Send, Clock } from 'lucide-react'
+import { X, ThumbsUp, ThumbsDown, Flag, Calendar, User, Briefcase, Send, Clock, Sparkles } from 'lucide-react'
 import { cn }             from '@/lib/utils/cn'
 import { PRIORITY_CONFIG, STATUS_CONFIG } from '@/types'
 import type { Task }      from '@/types'
 import { toast }          from '@/store/appStore'
+import { MentionTextarea, CommentText } from '@/components/tasks/MentionTextarea'
 import { isOverdue }      from '@/lib/utils/format'
 import { Avatar }         from '@/components/ui/Badge'
 
@@ -28,7 +29,7 @@ export function TaskDetailPanel({ task, members, clients, currentUserId, userRol
   const isDesignatedApprover = task?.approver_id
     ? task.approver_id === currentUserId
     : canManage
-  const approverInfo = (task as any)?.approver as { id: string; name: string } | null
+  const approverInfo = (task as any)?.approver as unknown as { id: string; name: string } | null
   const isAssignee = task?.assignee_id === currentUserId
 
   /* local editable state */
@@ -54,6 +55,7 @@ export function TaskDetailPanel({ task, members, clients, currentUserId, userRol
   const [attLoaded,     setAttLoaded]     = useState(false)
   const [uploading,     setUploading]     = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [aiLoading, setAiLoading] = useState(false)
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -523,13 +525,14 @@ export function TaskDetailPanel({ task, members, clients, currentUserId, userRol
                 <div className="flex gap-3 mb-4">
                   <Avatar name={myName} size="sm" />
                   <div className="flex-1">
-                    <textarea
+                    <MentionTextarea
                       value={comment}
-                      onChange={e => setComment(e.target.value)}
+                      onChange={setComment}
                       onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) sendComment() }}
-                      placeholder="Write a comment... (Cmd+Enter to send)"
+                      placeholder="Write a comment... (Cmd+Enter to send, @ to mention)"
                       rows={2}
-                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none resize-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
+                      members={members}
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-100 transition-all"
                     />
                     {comment.trim() && (
                       <button onClick={sendComment} disabled={sending}
@@ -552,7 +555,7 @@ export function TaskDetailPanel({ task, members, clients, currentUserId, userRol
                             <span className="text-xs text-gray-400">{new Date(cm.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</span>
                           </div>
                           <div className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed whitespace-pre-wrap border border-gray-100">
-                            {cm.content}
+                            <CommentText text={cm.content} members={members}/>
                           </div>
                         </div>
                       </div>

@@ -127,6 +127,23 @@ export function Sidebar({ onClose }: { onClose?: () => void } = {}) {
       </nav>
 
       {/* Bottom: user + settings */}
+      {/* Trial banner */}
+      {plan === 'free' && (session?.org as any)?.status === 'trialing' && (
+        <Link href="/settings/billing" style={{
+          display: 'block', margin: '0 8px 6px', padding: '10px 12px', borderRadius: 10,
+          background: 'linear-gradient(135deg, rgba(13,148,136,0.25), rgba(124,58,237,0.2))',
+          border: '1px solid rgba(255,255,255,0.1)', textDecoration: 'none',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#14b8a6', animation: 'pulse 1.5s ease-in-out infinite' }}/>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.9)' }}>Free trial active</span>
+          </div>
+          <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', lineHeight: 1.4 }}>
+            Upgrade to keep all features after trial ends
+          </p>
+        </Link>
+      )}
+
       <div style={{ padding: '8px', borderTop: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
         <SI href="/settings" active={isActive('/settings')} icon={<Settings className="h-4 w-4"/>} label="Settings"/>
 

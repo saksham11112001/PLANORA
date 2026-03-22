@@ -1,7 +1,7 @@
 import { createClient }   from '@/lib/supabase/server'
 import { redirect }       from 'next/navigation'
 import { ReportsCharts }  from './ReportsCharts'
-import { Download }       from 'lucide-react'
+import { ReportsExport }  from './ReportsExport'
 import { fmtHours }       from '@/lib/utils/format'
 import type { Metadata }  from 'next'
 export const metadata: Metadata = { title: 'Reports' }
