@@ -29,5 +29,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
+  const loginUrl = new URL(process.env.NEXT_PUBLIC_SNG_LOGIN_URL ?? '/login', request.url)
+  loginUrl.searchParams.set('error', 'auth_failed')
+  return NextResponse.redirect(loginUrl)
 }

@@ -20,8 +20,8 @@ export default async function LandingPage() {
           <span style={{ color: '#fff', fontWeight: 700, fontSize: 18, letterSpacing: '-0.3px' }}>Planora</span>
         </div>
         <div style={{ flex: 1 }} />
-        <Link href="/login" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', marginRight: 20 }}>Sign in</Link>
-        <Link href="/login" style={{ background: '#0d9488', color: '#fff', padding: '8px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>Get started free</Link>
+        <Link href={process.env.NEXT_PUBLIC_SNG_LOGIN_URL ?? "/login"} style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', marginRight: 20 }}>Sign in</Link>
+        <Link href={process.env.NEXT_PUBLIC_SNG_LOGIN_URL ?? "/login"} style={{ background: '#0d9488', color: '#fff', padding: '8px 20px', borderRadius: 8, fontSize: 14, fontWeight: 600, textDecoration: 'none' }}>Get started free</Link>
       </nav>
 
       {/* Hero */}
@@ -41,7 +41,7 @@ export default async function LandingPage() {
         </p>
 
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/login" style={{ background: '#0d9488', color: '#fff', padding: '14px 32px', borderRadius: 10, fontSize: 16, fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>
+          <Link href={process.env.NEXT_PUBLIC_SNG_LOGIN_URL ?? "/login"} style={{ background: '#0d9488', color: '#fff', padding: '14px 32px', borderRadius: 10, fontSize: 16, fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>
             Start free → 
           </Link>
           <a href="#features" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', padding: '14px 32px', borderRadius: 10, fontSize: 16, fontWeight: 600, textDecoration: 'none', border: '1px solid rgba(255,255,255,0.2)', display: 'inline-block' }}>
@@ -77,7 +77,7 @@ export default async function LandingPage() {
         <div style={{ background: 'rgba(13,148,136,0.15)', border: '1px solid rgba(13,148,136,0.3)', borderRadius: 20, padding: '48px 40px', maxWidth: 560, margin: '0 auto' }}>
           <h2 style={{ color: '#fff', fontSize: 28, fontWeight: 700, marginBottom: 12 }}>Ready to get organised?</h2>
           <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 28, fontSize: 15 }}>Join your team on Planora — free to start, no setup headaches.</p>
-          <Link href="/login" style={{ background: '#0d9488', color: '#fff', padding: '14px 36px', borderRadius: 10, fontSize: 16, fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>
+          <Link href={process.env.NEXT_PUBLIC_SNG_LOGIN_URL ?? "/login"} style={{ background: '#0d9488', color: '#fff', padding: '14px 36px', borderRadius: 10, fontSize: 16, fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>
             Create your workspace →
           </Link>
         </div>
